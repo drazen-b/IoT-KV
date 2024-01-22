@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+        }
+        .box {
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .light-status {
+            background-color: #e0eaff;
+        }
+        .rain-status {
+            background-color: #ffd6d6;
+        }
+        .proximity-status {
+            background-color: #f2f2f2;
+        }
+        .status-indicator {
+            font-weight: bold;
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .status-on {
+            background-color: #4CAF50;
+        }
+        .status-off {
+            background-color: #f44336;
+        }
+        .proximity-value {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box light-status">
+            <div>Svjetla</div>
+            <!-- The class "status-on" or "status-off" will be toggled based on the light level -->
+            <div id="light-status" class="status-indicator status-off">Isključeno</div>
+        </div>
+        <div class="box rain-status">
+            <div>Brisači</div>
+            <!-- The class "status-on" or "status-off" will be toggled based on the rain status -->
+            <div id="rain-status" class="status-indicator status-off">Isključeno</div>
+        </div>
+        <div class="box proximity-status">
+            <div>Udaljenost od najbližeg objekta</div>
+            <div id="proximity-value" class="proximity-value">-- m</div>
+        </div>
+    </div>
+
+    <!-- Include Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+            socket.on('mqtt_update', function(msg) {
+                // Assuming the server sends messages with the format: { "topic": "value" }
+                for (var topic in msg) {
+                    if (msg.hasOwnProperty(topic)) {
+                        var value = msg[topic];
+                        if (topic === "zendra/test/light_level") {
+                            var lightStatus = document.getElementById('light-status');
+                            lightStatus.textContent = value < 500 ? 'Uključeno' : 'Isključeno';
+                            lightStatus.className = 'status-indicator ' + (value < 500 ? 'status-on' : 'status-off');
+                        } else if (topic === "zendra/test/is_raining") {
+                            var rainStatus = document.getElementById('rain-status');
+                            rainStatus.textContent = value ? 'Uključeno' : 'Isključeno';
+                            rainStatus.className = 'status-indicator ' + (value ? 'status-on' : 'status-off');
+                        } else if (topic === "zendra/test/proximity") {
+                            document.getElementById('proximity-value').textContent = parseFloat(value).toFixed(2) + ' m';
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

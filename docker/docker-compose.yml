@@ -1,0 +1,32 @@
+version: "3.7"
+
+services:
+  db:
+    image: mysql:8.0
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d/
+    env_file:
+      - .env
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    networks:
+      app-network:
+        ipv4_address: 172.28.1.2
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 20s
+        retries: 10
+
+volumes:
+  db_data:
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
