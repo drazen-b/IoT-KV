@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS mqtt_messages_proximity (
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE USER 'exporter'@'localhost' IDENTIFIED BY 'exporter' WITH MAX_USER_CONNECTIONS 3;
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'localhost';
+
 CREATE USER 'mqtt'@'%' IDENTIFIED BY 'mqtt';
 GRANT ALL PRIVILEGES ON mqtt_database.* TO 'mqtt'@'%';
 FLUSH PRIVILEGES;
