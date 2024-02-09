@@ -9,12 +9,12 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 # MQTT Settings
-MQTT_BROKER = "192.168.0.105"
+MQTT_BROKER = "192.168.25.196"
 MQTT_PORT = 1883
 MQTT_TOPICS = ["zendra/test/light_level", "zendra/test/is_raining", "zendra/test/proximity"]
 
 # MySQL Settings
-MYSQL_HOST = "172.28.1.2"
+MYSQL_HOST = "0.0.0.0"
 MYSQL_USER = "mqtt"
 MYSQL_PASSWORD = "mqtt"
 MYSQL_DB = "mqtt_database"
@@ -72,9 +72,9 @@ def on_message(client, userdata, msg):
     data_type = TOPIC_DATA_TYPES.get(msg.topic)
     if data_type:
         try:
-            payload = msg.payload.decode().lower()
+            payload = msg.payload.decode().lower().strip()
             if data_type == bool:
-                value = payload == 'true'
+                value = payload == '1'
             else:
                 value = data_type(payload)
 
@@ -89,6 +89,7 @@ def on_message(client, userdata, msg):
                 socketio.emit('mqtt_update', {msg.topic: value})
         except ValueError:
             print(f"Failed to convert message to {data_type} on topic {msg.topic}")
+
             
 def run_mqtt():
     client = mqtt.Client()

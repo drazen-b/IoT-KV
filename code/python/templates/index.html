@@ -1,97 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
+      :root {
+        --container-color: #ebebeb;
+        --card-color: #cecece;
+        --active-color: #a6c0dd;
+        --inactive-color: #f1b0b4;
+        --distance-color: #acacac;
+        --white-color: #ffffff;
+        --black-color: #000000;
+      }
+
+      * {
+        margin: 0;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        background-color: var(--container-color);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 70%;
+        height: 90%;
+        background-color: var(--container-color);
+      }
+
+      @media (max-width: 900px) {
+        .cards {
+          grid-template-columns: 1fr;
         }
-        .container {
-            text-align: center;
+      }
+
+      .card-1 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin: 32px;
+        padding: 8px;
+        background-color: var(--card-color);
+      }
+
+      .card-2 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        grid-column-start: 1;
+        grid-column-end: 3;
+        margin: 32px;
+        padding: 8px;
+        background-color: var(--card-color);
+      }
+
+      @media (max-width: 900px) {
+        .card-1 {
+          margin: 16px;
         }
-        .box {
-            border-radius: 10px;
-            padding: 20px;
-            margin: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .card-2 {
+          grid-column-start: 1;
+          grid-column-end: 2;
+          margin: 16px;
         }
-        .light-status {
-            background-color: #e0eaff;
-        }
-        .rain-status {
-            background-color: #ffd6d6;
-        }
-        .proximity-status {
-            background-color: #f2f2f2;
-        }
-        .status-indicator {
-            font-weight: bold;
-            color: white;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        .status-on {
-            background-color: #4CAF50;
-        }
-        .status-off {
-            background-color: #f44336;
-        }
-        .proximity-value {
-            font-size: 1.5em;
-            margin: 20px 0;
-        }
+      }
+
+      .card-title {
+        margin: 0px 32px;
+        color: var(--black-color);
+        font-size: 24px;
+        text-align: center;
+      }
+
+      .status-on {
+        padding: 10px 28px;
+        background-color: var(--active-color);
+        color: var(--white-color);
+        font-size: 18px;
+        text-align: center;
+      }
+
+      .status-off {
+        padding: 10px 28px;
+        background-color: var(--inactive-color);
+        color: var(--white-color);
+        font-size: 18px;
+        text-align: center;
+      }
+
+      .proximity-value {
+        padding: 12px 36px;
+        background-color: var(--distance-color);
+        color: var(--white-color);
+        font-size: 18px;
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="box light-status">
-            <div>Svjetla</div>
-            <!-- The class "status-on" or "status-off" will be toggled based on the light level -->
-            <div id="light-status" class="status-indicator status-off">Isključeno</div>
+  </head>
+  <body>
+    <div class="cards">
+      <div class="card-1 light-status">
+        <div class="card-title">Svjetla</div>
+        <!-- The class "status-on" or "status-off" will be toggled based on the light level -->
+        <div id="light-status" class="status-indicator status-off">
+          Isključeno
         </div>
-        <div class="box rain-status">
-            <div>Brisači</div>
-            <!-- The class "status-on" or "status-off" will be toggled based on the rain status -->
-            <div id="rain-status" class="status-indicator status-off">Isključeno</div>
+      </div>
+      <div class="card-1 rain-status">
+        <div class="card-title">Brisači</div>
+        <!-- The class "status-on" or "status-off" will be toggled based on the rain status -->
+        <div id="rain-status" class="status-indicator status-off">
+          Isključeno
         </div>
-        <div class="box proximity-status">
-            <div>Udaljenost od najbližeg objekta</div>
-            <div id="proximity-value" class="proximity-value">-- m</div>
-        </div>
+      </div>
+      <div class="card-2 proximity-status">
+        <div class="card-title">Udaljenost od najbližeg objekta</div>
+        <div id="proximity-value" class="proximity-value">-- m</div>
+      </div>
     </div>
 
     <!-- Include Socket.IO -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
     <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-            var socket = io.connect('http://' + document.domain + ':' + location.port);
-            socket.on('mqtt_update', function(msg) {
-                // Assuming the server sends messages with the format: { "topic": "value" }
-                for (var topic in msg) {
-                    if (msg.hasOwnProperty(topic)) {
-                        var value = msg[topic];
-                        if (topic === "zendra/test/light_level") {
-                            var lightStatus = document.getElementById('light-status');
-                            lightStatus.textContent = value < 500 ? 'Uključeno' : 'Isključeno';
-                            lightStatus.className = 'status-indicator ' + (value < 500 ? 'status-on' : 'status-off');
-                        } else if (topic === "zendra/test/is_raining") {
-                            var rainStatus = document.getElementById('rain-status');
-                            rainStatus.textContent = value ? 'Uključeno' : 'Isključeno';
-                            rainStatus.className = 'status-indicator ' + (value ? 'status-on' : 'status-off');
-                        } else if (topic === "zendra/test/proximity") {
-                            document.getElementById('proximity-value').textContent = parseFloat(value).toFixed(2) + ' m';
-                        }
-                    }
-                }
-            });
+      document.addEventListener("DOMContentLoaded", function () {
+        var socket = io.connect(
+          "http://" + document.domain + ":" + location.port
+        );
+        socket.on("mqtt_update", function (msg) {
+          // Assuming the server sends messages with the format: { "topic": "value" }
+          for (var topic in msg) {
+            if (msg.hasOwnProperty(topic)) {
+              var value = msg[topic];
+              if (topic === "zendra/test/light_level") {
+                var lightStatus = document.getElementById("light-status");
+                lightStatus.textContent =
+                  value < 500 ? "Isključeno" : "Uključeno";
+                lightStatus.className =
+                  "status-indicator " +
+                  (value < 500 ? "status-off" : "status-on");
+              } 
+		if (topic === "zendra/test/is_raining") {
+                    var rainStatus = document.getElementById("rain-status");
+                    rainStatus.textContent = value ? "Isključeno" : "Uključeno";
+                    rainStatus.className =
+                    "status-indicator " + (value ? "status-off" : "status-on");
+              } 
+		    if (topic === "zendra/test/proximity") {
+                document.getElementById("proximity-value").textContent =
+                  parseFloat(value).toFixed(2) + " cm";
+              }
+            }
+          }
         });
+      });
     </script>
-</body>
+  </body>
 </html>
